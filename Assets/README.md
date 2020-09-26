@@ -31,10 +31,15 @@ Design the following database schema containing three tables:
 Build a command-line application that at a minimum allows the user to:
 
   * Add departments, roles, employees
+  INSERT INTO department (name) VALUES ('exoanthropic ecology');
+  INSERT INTO role (title, salary, department_id) VALUES ('head of exoanthropic ecology', 1000000, 1);
+  INSERT INTO employee (first_name, last_name, 1, 1) VALUES ('Sarina', 'Rainbolt', 1, 1);
 
   * View departments, roles, employees
+  SELECT FROM
 
   * Update employee roles
+
 
 Bonus points if you're able to:
 
