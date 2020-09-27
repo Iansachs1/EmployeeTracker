@@ -3,7 +3,7 @@ var connection = require("./connection.js");
 var database = {
     // Functions to get name/title info needed for inquirer
     getDepartmentNames: function () {
-        var queryString = "SELECT name FROM department"
+        var queryString = "SELECT * FROM department"
         return new Promise(function (resolve, reject) {
             connection.query(
                 queryString,
@@ -12,7 +12,7 @@ var database = {
                     if (error) {
                         reject(error);
                     } else {
-                        var departmentNames = data.map(department => department.name);
+                        var departmentNames = data.map(department => { return { "name": department.name, "value": department.id}});
                         resolve(departmentNames);
                     }
                 });
@@ -20,7 +20,7 @@ var database = {
     },
 
     getRoleNames: function () {
-        var queryString = "SELECT title FROM role"
+        var queryString = "SELECT * FROM role"
         return new Promise(function (resolve, reject) {
             connection.query(
                 queryString,
@@ -29,15 +29,15 @@ var database = {
                     if (error) {
                         reject(error);
                     } else {
-                        var roleTitles = data.map(role => role.title);
+                        var roleTitles = data.map(role => { return { "name": role.title, "value": role.id }});
                         resolve(roleTitles);
                     }
                 });
         });
     },
 
-    getEmployeeNames: function () {
-        var queryString = "SELECT first_name, last_name FROM employee"
+    getManagerNames: function () {
+        var queryString = "SELECT * FROM employee WHERE is_manager = 1"
         return new Promise(function (resolve, reject) {
             connection.query(
                 queryString,
@@ -46,16 +46,8 @@ var database = {
                     if (error) {
                         reject(error);
                     } else {
-                        var firstNames = data.map(employee => employee.first_name);
-                        var lastNames = data.map(employee => employee.last_name);
-                        var fullNames = [];
+                        var fullNames = data.map(employee => { return { "name": employee.first_name + " " + employee.last_name, "value": employee.id}});
 
-                        for (let i = 0; i < firstNames.length; i++) {
-                            var fullName = firstNames[i] + " " + lastNames[i];
-                            fullNames.push(fullName)
-                        }
-
-                        console.log(fullNames);
                         resolve(fullNames);
                     }
                 });
@@ -116,41 +108,6 @@ var database = {
 
 
     // Functions that take in names/titles from inquirer and return an id for functions to add new rows in db
-    getSelectedDepartmentID: function (departmentName) {
-        var queryString = "SELECT id FROM department WHERE name = ?"
-        return new Promise(function (resolve, reject) {
-            connection.query(
-                queryString,
-                [
-                    departmentName
-                ],
-                function (error, data) {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve(data[0].id);
-                    }
-                })
-        });
-    },
-
-    getSelectedRoleID: function (roleTitle) {
-        var queryString = "SELECT id FROM role WHERE title = ?"
-        return new Promise(function (resolve, reject) {
-            connection.query(
-                queryString,
-                [
-                    roleTitle
-                ],
-                function (error, data) {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve(data[0].id);
-                    }
-                })
-        });
-    },
 
     getSelectedEmployeeID: function (firstName, lastName) {
         var queryString = "SELECT id FROM employee WHERE first_name = ? AND last_name = ?"
@@ -217,8 +174,8 @@ var database = {
         });
     },
 
-    createEmployee: function (firstName, lastName, roleId, managerId) {
-        var queryString = "INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)"
+    createEmployee: function (firstName, lastName, roleId, managerId, isManager) {
+        var queryString = "INSERT INTO employee (first_name, last_name, role_id, manager_id, is_manager) VALUES (?, ?, ?, ?, ?)"
         return new Promise(function (resolve, reject) {
             connection.query(
                 queryString,
@@ -226,7 +183,8 @@ var database = {
                     firstName,
                     lastName,
                     roleId,
-                    managerId
+                    managerId,
+                    isManager
                 ],
                 function (error, data) {
                     if (error) {

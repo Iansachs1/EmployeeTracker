@@ -1,4 +1,5 @@
 const inquirer = require("inquirer");
+const { getManagerNames } = require("./database.js");
 const database = require("./database.js");
 
 
@@ -29,25 +30,27 @@ var prompts = {
                 if (task === choices[0]) {
                     database.getDepartments()
                         .then(function (data) {
-                            console.log(data);
+                            console.table(data);
                             prompts.continue();
                         });
                 } else if (task === choices[1]) {
                     database.getRoles()
                         .then(function (data) {
-                            console.log(data);
+                            console.table(data);
                             prompts.continue();
                         });
                 } else if (task === choices[2]) {
                     database.getEmployees()
                         .then(function (data) {
-                            console.log(data);
+                            console.table(data);
                             prompts.continue();
                         });
                 } else if (task === choices[3]) {
                     prompts.AddADepartment();
                 } else if (task === choices[4]) {
-                    prompts.selectDepartment();
+                    prompts.AddARole();
+                } else if (task === choices[5]) {
+                    prompts.AddAnEmployee();
                 }
             });
     },
@@ -73,59 +76,110 @@ var prompts = {
             .prompt([
                 {
                     name: "departmentName",
-                    message: "What is the name of the department you would like to add?"
+                    message: "What is the name of the department you want to add"
                 }
             ])
             .then(function (response) {
-                var departmentName = response.departmentName;
-
-                database.createDepartment(departmentName)
-                    .then(prompts.continue());
-            })
-    },
-
-    selectDepartment: function () {
-        database.getDepartmentNames()
-        .then(function (departmentNames) {
-            var choices = departmentNames;
-            inquirer
-                .prompt([
-                    {
-                        name: "selectedDepartment",
-                        type: "list",
-                        message: "Which department would you like to add a role to?",
-                        choices: choices
-                    }
-                ])
-                .then(function (response) {
-                    database.getSelectedDepartmentID(response.selectedDepartment)
-                    .then(function (data) {
-                        prompts.AddARole(data);
-                    })
+                database.createDepartment(response.departmentName)
+                .then(function (data) {
+                    prompts.continue();
                 })
-        })
-    },
-
-    AddARole: function (departmentId) {
-        inquirer
-            .prompt([
-                {
-                    name: "title",
-                    message: "What is the title of the role you want to add?"
-                },
-                {
-                    name: "salary",
-                    type: "number",
-                    message: "What is the salary of this role?"
-                }
-
-            ])
-            .then(function (response) {
-                database.createRole(response.title, response.salary, departmentId)
-                .then(prompts.continue());
             })
     },
 
+    addARole: function () {
+        database.getDepartmentNames()
+            .then(function (departmentNames) {
+                const choices = departmentNames;
+                inquirer
+                    .prompt([
+                        {
+                            name: "title",
+                            message: "What is the title of the role you want to add?"
+                        },
+                        {
+                            name: "salary",
+                            type: "number",
+                            message: "What is the salary of this role?"
+                        },
+                        {
+                            name: "selectedDepartment",
+                            type: "list",
+                            message: "Which department would you like to add a role to?",
+                            choices: choices
+                        }
+
+                    ])
+                    .then(function (response) {
+                        console.log(response);
+                        database.createRole(response.title, response.salary, response.selectedDepartment)
+                            .then(prompts.continue());
+                    })
+            })
+    },
+
+    addAnEmployee: function () {
+        database.getRoleNames()
+            .then(function (roleTitles) {
+                const roleChoices = roleTitles;
+
+                prompts.getManagerNames()
+                    .then(function (fullNames) {
+                        const managerNames = fullNames;
+                        managerNames.push({ "name": "none", "value": null })
+
+                        inquirer
+                            .prompt([
+                                {
+                                    name: "firstName",
+                                    message: "What is this employee's first name?"
+                                },
+                                {
+                                    name: "lastName",
+                                    message: "What is this employee's last name?"
+                                },
+                                {
+                                    name: "selectedRole",
+                                    type: "list",
+                                    message: "What is this employee's role?",
+                                    choices: roleChoices
+                                },
+                                {
+                                    name: "selectedManager",
+                                    type: "list",
+                                    message: "Who is their manager?",
+                                    choices: managerNames
+                                },
+                                {
+                                    name: "isManager",
+                                    type: "confirm",
+                                    message: "Is this employee a manager?"
+                                }
+                            ])
+                            .then(function (response) {
+                                console.log(response);
+
+                                database.createEmployee(response.firstName, response.lastName, response.selectedRole, response.selectedManager, response.isManager)
+                                    .then(function (data) {
+                                        prompts.continue();
+                                    })
+                                    .catch(function (error) {
+                                        console.log("error at create employee", error.message);
+                                    })
+                            })
+                            .catch(function (error) {
+                                console.log("error at inquirer prompts", error.message);
+                            })
+                    })
+                    .catch(function (error) {
+                        console.log("error at get manager names", error.message);
+                    })
+
+            })
+            .catch(function (error) {
+                console.log("error at get role names", error.message);
+            });
+    },
 
     getSelectedEmployeeName: function (data) {
 
