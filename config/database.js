@@ -54,6 +54,23 @@ var database = {
         });
     },
 
+    getEmployeeNames: function () {
+        var queryString = "SELECT * FROM employee"
+        return new Promise(function (resolve, reject) {
+            connection.query(
+                queryString,
+                [],
+                function (error, data) {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        var fullNames = data.map(employee => { return { "name": employee.first_name + " " + employee.last_name, "value": employee.id}});
+                        resolve(fullNames);
+                    }
+                });
+        });
+    },
+
 
 
     // Functions to get all info from tables and display it on the console

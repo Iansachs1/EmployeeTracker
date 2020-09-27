@@ -51,6 +51,8 @@ var prompts = {
                     prompts.AddARole();
                 } else if (task === choices[5]) {
                     prompts.AddAnEmployee();
+                } else if (task === choices[6]) {
+                    prompts.updateEmployeeRole();
                 }
             });
     },
@@ -181,22 +183,39 @@ var prompts = {
             });
     },
 
-    getSelectedEmployeeName: function (data) {
+    updateEmployeeRole: function () {
+        database.getEmployeeNames()
+        .then(function (data) {
+            const employeeNames = data;
+            database.getRoleNames()
+            .then(function (data) {
+                const roleNames = data;
 
-        inquirer
-            .prompt([
-                {
-                    name: "selectedName",
-                    type: "list",
-                    message: "Pick the employee you want to update",
-                    choices: data
-                }
-            ])
-            .then(function (response) {
-                var selectedName = response.selectedName;
-                var firstAndLastName = selectedName.split(" ");
-                database.getSelectedEmployeeID(firstAndLastName[0], firstAndLastName[1]);
-            });
+
+                inquirer
+                    .prompt([
+                        {
+                            name: "selectedName",
+                            type: "list",
+                            message: "Pick the employee you want to update",
+                            choices: employeeNames
+                        },
+                        {
+                            name: "newRole",
+                            type: "list",
+                            message: "What is their new role?",
+                            choices: roleNames
+                        }
+                    ])
+                    .then(function (response) {
+                        database.updateEmployeeRole(response.selectedName, response.newRole)
+                        .then(function (data) {
+                            prompts.continue();
+                        });
+                    });
+            })
+
+        })
     }
 }
 
