@@ -46,11 +46,11 @@ var prompts = {
                             prompts.continue();
                         });
                 } else if (task === choices[3]) {
-                    prompts.AddADepartment();
+                    prompts.addADepartment();
                 } else if (task === choices[4]) {
-                    prompts.AddARole();
+                    prompts.addARole();
                 } else if (task === choices[5]) {
-                    prompts.AddAnEmployee();
+                    prompts.addAnEmployee();
                 } else if (task === choices[6]) {
                     prompts.updateEmployeeRole();
                 }
@@ -73,7 +73,7 @@ var prompts = {
             });
     },
 
-    AddADepartment: function () {
+    addADepartment: function () {
         inquirer
             .prompt([
                 {
@@ -125,7 +125,7 @@ var prompts = {
             .then(function (roleTitles) {
                 const roleChoices = roleTitles;
 
-                prompts.getManagerNames()
+                database.getManagerNames()
                     .then(function (fullNames) {
                         const managerNames = fullNames;
                         managerNames.push({ "name": "none", "value": null })
@@ -218,7 +218,5 @@ var prompts = {
         })
     }
 }
-
-prompts.initiate();
 
 module.exports = prompts;
